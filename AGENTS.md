@@ -90,6 +90,9 @@ the person to try it.
   - any file containing absolute paths, usernames or tokens
 
   Grep for `/Users/` before every commit.
+- A theme's `RECIPE.md` describes what the theme really does (Herdr's format;
+  see "Layouts and mods other people made" in `$H/AGENTS.md`). When you change
+  a theme's look or behavior, update its recipe in the same commit.
 - Run `herdr-app check <theme>/mods/<name>` on the repo copy before you
   commit. It works from any path.
 - When you change `herdr-theme`, test it against a throwaway home:

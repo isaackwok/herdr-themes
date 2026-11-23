@@ -15,7 +15,8 @@ All text uses the bundled PxPlus IBM VGA 8x16 pixel font.
 | Files | `mods/herdr-quest/`, `layouts/herdr-quest.{json,svg}`, `themes/herdr-quest.json`, `keys.json` |
 
 For requirements and how themes in this repo work in general, see the
-[root README](../README.md).
+[root README](../README.md). [`RECIPE.md`](RECIPE.md) describes the whole
+layout in enough detail to rebuild it from scratch.
 
 ## Install
 
