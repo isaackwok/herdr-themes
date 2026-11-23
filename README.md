@@ -2,85 +2,59 @@
 
 Themes for the Herdr app. Each top-level directory is one theme. Inside it,
 files are arranged the way they go in Herdr's home, `~/.config/herdr-app/`,
-so installing a theme means copying them across.
+so installing a theme means copying them across. Each theme's own `README.md`
+has its name, install commands, what it runs on your machine, and how to
+remove it.
 
 > Working with an AI agent? Point it at [`AGENTS.md`](AGENTS.md) (also
-> available as `CLAUDE.md`). It has the same install steps, written as rules
-> the agent must follow.
+> available as `CLAUDE.md`). It has the same steps, written as rules the agent
+> must follow.
 
 ## Themes
 
-| Directory | Layout name | What it is |
-| --- | --- | --- |
-| [`rpg/`](rpg) | `herdr-quest` | **Herdr Quest**, a 16-bit RPG look. Spaces appear as realms on a world map, tabs as quests, and agents as party members you can walk up to and talk to in an overworld village. It uses the bundled PxPlus IBM VGA 8x16 pixel font. |
+| Directory | What it is |
+| --- | --- |
+| [`rpg/`](rpg) | **Herdr Quest**, a 16-bit RPG layout |
 
 ## Requirements
 
 - The Herdr app, with its CLI `herdr-app` on your `PATH`
 - `jq`, used to merge keybindings
 
-## Install a theme
+## How a theme is laid out
 
-The example below installs `rpg`. For another theme, change `THEME` and the
-names. The layout, theme file and mod folder all share the theme's name (here
-`herdr-quest`).
-
-```sh
-THEME=rpg
-HOME_DIR=~/.config/herdr-app
-
-# 0. Make sure nothing with these names exists yet.
-#    These copies overwrite silently.
-ls $HOME_DIR/mods/herdr-quest $HOME_DIR/layouts/herdr-quest.* $HOME_DIR/themes/herdr-quest.json 2>/dev/null
-
-# 1. Copy the files.
-cp -R $THEME/mods/*    $HOME_DIR/mods/
-cp    $THEME/layouts/* $HOME_DIR/layouts/
-cp    $THEME/themes/*  $HOME_DIR/themes/
-
-# 2. Merge the theme's keybindings into yours.
-#    Only adds a "layout:herdr-quest" section, which applies only while
-#    that layout is shown.
-cp $HOME_DIR/keys.json $HOME_DIR/keys.json.bak
-jq -s '.[0] * .[1]' $HOME_DIR/keys.json.bak $THEME/keys.json > $HOME_DIR/keys.json
-
-# 3. Check the mod, then switch to the layout.
-herdr-app check $HOME_DIR/mods/herdr-quest
-herdr-app do layout.switch --name herdr-quest
+```
+<theme>/
+  README.md, AGENTS.md     # this theme's install guide (people / agents)
+  mods/<name>/             # -> ~/.config/herdr-app/mods/<name>/
+  layouts/<name>.json      # -> ~/.config/herdr-app/layouts/  (+ <name>.svg preview)
+  themes/<name>.json       # -> ~/.config/herdr-app/themes/   (optional)
+  keys.json                # merged into ~/.config/herdr-app/keys.json, never copied over it
 ```
 
-Changes take effect immediately. Herdr has no restart step. If a file is
-invalid, Herdr keeps the last good version and writes the reason to
-`~/.config/herdr-app/<name>.error`. `herdr-app status` also lists those errors.
+The layout, theme file and mod all use the same `<name>`.
 
-**Switching back:** press `ctrl-shift-l` to cycle layouts, or run
-`herdr-app do layout.switch --name main`. If something goes badly wrong,
-`ctrl-alt-shift-escape` always returns you to the default layout.
+## Installing any theme
 
-**Note on `keys.json`:** while your `keys.json` is untouched, Herdr upgrades it
-with new default shortcuts. Once you edit it (step 2 counts), you have to add
-new defaults yourself.
+Every theme installs the same way. See the theme's README for the exact
+commands.
 
-### What the `rpg` mod does on your machine
+1. Make sure nothing in `~/.config/herdr-app` already uses the same name.
+   `cp` overwrites without asking.
+2. Copy `mods/`, `layouts/` and `themes/` into `~/.config/herdr-app/`.
+3. Merge `keys.json` into yours with `jq -s '.[0] * .[1]'`, after making a
+   backup.
+4. Run `herdr-app check ~/.config/herdr-app/mods/<name>`, then
+   `herdr-app do layout.switch --name <name>`.
 
-It doesn't use the network, and it reads no files outside its own folder. It
-does run these programs:
+Changes take effect immediately, with no restart. If a file is invalid,
+Herdr keeps the last good version and writes the reason to
+`~/.config/herdr-app/<name>.error`. `herdr-app status` also lists those
+errors. To switch back, press `ctrl-shift-l` to cycle layouts.
+`ctrl-alt-shift-escape` always resets to the default `main` layout.
 
-- `herdr-app status`: checks whether a popup has closed, then gives keyboard
-  focus back to the overworld
-- `git rev-parse`: in a pane's working directory, shows the repo and worktree
-  for that pane
-- `hc keys <terminal> esc`: sends Esc to a terminal when you leave a
-  conversation
-
-### Uninstall
-
-```sh
-rm -r ~/.config/herdr-app/mods/herdr-quest ~/.config/herdr-app/data/herdr-quest
-rm    ~/.config/herdr-app/layouts/herdr-quest.{json,svg} ~/.config/herdr-app/themes/herdr-quest.json
-```
-
-Then delete the `"layout:herdr-quest"` section from `keys.json`.
+Once you edit your `keys.json` (merging counts), Herdr stops adding new
+default shortcuts to it for you.
 
 ## Developing
 
@@ -89,36 +63,25 @@ and test changes in the live copy, then copy them back into the repo before you
 commit:
 
 ```sh
-H=~/.config/herdr-app
-rsync -a --delete --exclude gpui-kit.d.ts $H/mods/herdr-quest/ rpg/mods/herdr-quest/
-cp $H/layouts/herdr-quest.{json,svg} rpg/layouts/
-cp $H/themes/herdr-quest.json        rpg/themes/
-herdr-app check rpg/mods/herdr-quest
+H=~/.config/herdr-app THEME=rpg NAME=herdr-quest
+rsync -a --delete --exclude gpui-kit.d.ts $H/mods/$NAME/ $THEME/mods/$NAME/
+cp $H/layouts/$NAME.{json,svg} $THEME/layouts/
+cp $H/themes/$NAME.json        $THEME/themes/
+herdr-app check $THEME/mods/$NAME
 ```
 
 - `gpui-kit.d.ts` is generated by Herdr for editor type hints, so it's
   gitignored.
-- `data/<mod>/` holds per-user state (for example, where the hero is
-  standing), so it's never committed.
-- To redraw the RPG sprites, run `python3 rpg/mods/herdr-quest/art/sprites.py`.
-  It writes the SVGs next to itself.
+- `~/.config/herdr-app/data/<mod>/` holds per-user state, so it's never
+  committed.
 
 Herdr's own reference for layouts, themes, keys and the mod API is at
 `~/.config/herdr-app/AGENTS.md`.
 
 ### Adding a theme
 
-1. Create a new top-level directory (for example `win98/`) containing
-   `mods/<name>/`, `layouts/<name>.json` with its `<name>.svg` preview,
-   `themes/<name>.json` if it has one, and `keys.json` with only its
-   `layout:<name>` section.
-2. Use one name for the layout, theme and mod, and make sure it doesn't clash
-   with Herdr's built-in names (`main`, `terminals`, `win98`, `files`, `menu`,
-   …).
-3. Add a row to the **Themes** table above.
-
-## Licenses
-
-The PxPlus IBM VGA 8x16 font in `rpg/mods/herdr-quest/fonts/` is by VileR
-(int10h.org), licensed under CC BY-SA 4.0. See `LICENSE-PxPlus.txt` next to the
-font.
+1. Create a new top-level directory with the structure shown above. Use one
+   name for the layout, theme and mod, and make sure it doesn't clash with
+   Herdr's built-in names (`ls ~/.config/herdr-app/mods ~/.config/herdr-app/layouts`).
+2. Write a `README.md` and an `AGENTS.md` for it. Use `rpg/` as the model.
+3. Add a row to the **Themes** table above and to the index in `AGENTS.md`.

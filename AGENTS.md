@@ -9,26 +9,26 @@ Before you change any Herdr files, read Herdr's own reference at
 "Keys", and "Check before you finish". If it disagrees with this file, follow
 Herdr's reference.
 
+**Each theme directory has its own `AGENTS.md`. Read it before you install or
+edit that theme.** It gives the theme's name, what its mod runs on the
+person's machine, and anything specific to that theme. This file covers only
+the rules that apply to every theme.
+
 ## Theme index
 
-| Directory | Name (layout = theme = mod) | Files |
-| --- | --- | --- |
-| `rpg/` | `herdr-quest` | `mods/herdr-quest/`, `layouts/herdr-quest.{json,svg}`, `themes/herdr-quest.json`, `keys.json` |
+| Directory | Name (layout = theme = mod) |
+| --- | --- |
+| `rpg/` | `herdr-quest` |
 
-Within a theme directory, every path maps straight to `$H`:
-`rpg/mods/herdr-quest/` goes to `$H/mods/herdr-quest/`, `rpg/layouts/x` to
-`$H/layouts/x`, and so on. The exception is the theme's `keys.json`, which you
-**merge** into `$H/keys.json`. Never copy it over that file.
+Inside a theme directory, `mods/`, `layouts/` and `themes/` map straight to
+`$H`. The theme's `keys.json` is the exception: you **merge** it into
+`$H/keys.json`. Never copy it over that file.
 
 ## Installing a theme (do these in order)
 
 1. **Tell the person what the mod does on their machine before you copy
-   anything.** For `rpg`: no network access, and it reads no files outside its
-   own folder. It runs `herdr-app status` (to restore focus after a popup
-   closes), `git rev-parse` in a pane's working directory (to show the repo and
-   worktree in menus), and `hc keys <terminal> esc` (to send Esc to a terminal
-   when a conversation closes). For any other theme, grep its mod for `exec(`,
-   `hc(` and file reads, and report what you find.
+   anything.** The theme's `AGENTS.md` lists it. Still grep the mod for
+   `exec(`, `hc(` and file reads, in case that list is out of date.
 2. **Check for name clashes. Never overwrite anything.** Look for
    `$H/mods/<name>`, `$H/layouts/<name>.json` and `$H/themes/<name>.json`.
    If one exists, ask the person. Either they want to update it in place, or
@@ -59,9 +59,8 @@ Within a theme directory, every path maps straight to `$H`:
    or `keys.error`). The installed theme is not finished until the check
    passes and the status shows no errors.
 6. **Tell the person how to undo it:** `ctrl-shift-l` cycles back to their
-   previous layout, `ctrl-alt-shift-escape` resets to `main`, and deleting the
-   copied files plus the `layout:<name>` key section removes the theme
-   completely.
+   previous layout, `ctrl-alt-shift-escape` resets to `main`, and the theme's
+   README has the uninstall commands.
 
 You can't script real keypresses. If something depends on keyboard focus, ask
 the person to try it.
@@ -85,11 +84,10 @@ the person to try it.
   Grep for `/Users/` before every commit.
 - Run `herdr-app check <theme>/mods/<name>` on the repo copy before you
   commit. It works from any path.
-- In `rpg`, sprites are generated: edit `rpg/mods/herdr-quest/art/sprites.py`
-  and rerun it. Don't hand-edit the SVGs.
-- When you add a theme, create a new top-level directory with the same
-  structure, use a single name that doesn't clash with Herdr's shipped mods and
-  layouts (`ls $H/mods $H/layouts`), and add a row to the index above and to
-  the Themes table in `README.md`.
+- To add a theme: create a new top-level directory with the same structure,
+  use a single name that doesn't clash with Herdr's shipped mods and layouts
+  (`ls $H/mods $H/layouts`), give it its own `README.md` and `AGENTS.md`
+  (model them on `rpg/`), and add a row to the index above and to the
+  Themes table in `README.md`.
 - Commits to this repo use the person's personal GitHub account. The remote is
   `git@github-personal:isaackwok/herdr-themes.git`; keep it.
