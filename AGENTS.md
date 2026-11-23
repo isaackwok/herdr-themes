@@ -26,6 +26,14 @@ Inside a theme directory, `mods/`, `layouts/` and `themes/` map straight to
 
 ## Installing a theme (do these in order)
 
+Use `./herdr-theme install <theme>` and `./herdr-theme uninstall <theme>` at the
+repo root. The script handles steps 2–5 below. It refuses to touch clashing
+files or rebind keys you've already bound unless given `--force`, backs up
+`keys.json` before changing it, runs `herdr-app check`, and switches the
+layout. Start with `--dry-run`. Only pass `--force` after the person agrees.
+Step 1 is always yours to do. The manual steps below show what the script
+does, for when you can't run it.
+
 1. **Tell the person what the mod does on their machine before you copy
    anything.** The theme's `AGENTS.md` lists it. Still grep the mod for
    `exec(`, `hc(` and file reads, in case that list is out of date.
@@ -84,6 +92,10 @@ the person to try it.
   Grep for `/Users/` before every commit.
 - Run `herdr-app check <theme>/mods/<name>` on the repo copy before you
   commit. It works from any path.
+- When you change `herdr-theme`, test it against a throwaway home:
+  `HERDR_APP_HOME=$(mktemp -d) ./herdr-theme install <theme> --no-switch`,
+  then `uninstall`. Never test it against the real `$H` without
+  `--dry-run`.
 - To add a theme: create a new top-level directory with the same structure,
   use a single name that doesn't clash with Herdr's shipped mods and layouts
   (`ls $H/mods $H/layouts`), give it its own `README.md` and `AGENTS.md`

@@ -34,18 +34,43 @@ remove it.
 
 The layout, theme file and mod all use the same `<name>`.
 
-## Installing any theme
+## Installing and uninstalling
 
-Every theme installs the same way. See the theme's README for the exact
-commands.
+Use the `herdr-theme` script at the repo root:
 
-1. Make sure nothing in `~/.config/herdr-app` already uses the same name.
-   `cp` overwrites without asking.
-2. Copy `mods/`, `layouts/` and `themes/` into `~/.config/herdr-app/`.
-3. Merge `keys.json` into yours with `jq -s '.[0] * .[1]'`, after making a
-   backup.
-4. Run `herdr-app check ~/.config/herdr-app/mods/<name>`, then
-   `herdr-app do layout.switch --name <name>`.
+```sh
+./herdr-theme list                      # themes in this repo
+./herdr-theme install rpg               # install, check, switch to it
+./herdr-theme uninstall rpg             # switch away if shown, remove it
+```
+
+| Option | Applies to | What it does |
+| --- | --- | --- |
+| `--dry-run` | both | Print what would happen and change nothing. |
+| `--force` | install | Replace files that already exist (an update) and keys you've bound to something else. Without it, the script stops before changing anything. |
+| `--no-switch` | install | Don't switch to the layout after installing. |
+| `--keep-data` | uninstall | Keep the mod's saved state in `data/<mod>/`. |
+
+Set `HERDR_APP_HOME` to target a Herdr home other than `~/.config/herdr-app`.
+
+**Install** copies the theme's `mods/`, `layouts/` and `themes/`, then merges
+its `keys.json` into yours. Your `keys.json` is backed up first as
+`keys.json.bak-<time>`. After that it runs `herdr-app check` on each mod and
+switches to the layout.
+
+**Uninstall** removes exactly the files the theme installed, plus the mod's
+saved state unless `--keep-data`. It also removes the theme's keys from
+`keys.json`, backed up first, but only keys that still have the theme's
+values. Keys you've changed stay.
+
+To do it by hand instead:
+
+1. Make sure nothing in `~/.config/herdr-app` already uses the theme's name.
+2. Copy the theme's `mods/`, `layouts/` and `themes/` into
+   `~/.config/herdr-app/`.
+3. Back up your `keys.json`, then merge the theme's into it with
+   `jq -s '.[0] * .[1]'`.
+4. Run `herdr-app check`, then `herdr-app do layout.switch --name <name>`.
 
 Changes take effect immediately, with no restart. If a file is invalid,
 Herdr keeps the last good version and writes the reason to

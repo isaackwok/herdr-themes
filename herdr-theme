@@ -1,0 +1,223 @@
+#!/usr/bin/env bash
+# Install or uninstall a theme from this repo into Herdr's home.
+#
+#   ./herdr-theme list
+#   ./herdr-theme install   <theme> [--force] [--no-switch] [--dry-run]
+#   ./herdr-theme uninstall <theme> [--keep-data] [--dry-run]
+#
+# <theme> is a top-level directory of this repo (e.g. rpg). Herdr's home is
+# $HERDR_APP_HOME, or ~/.config/herdr-app when that is unset.
+#
+# install   copies mods/, layouts/ and themes/ into the home, merges keys.json
+#           into the home's keys.json (backed up first), runs `herdr-app check`
+#           on each mod and switches to the layout. It refuses to overwrite
+#           existing files or rebind keys you already use unless --force.
+# uninstall switches away from the layout if it is showing, removes exactly
+#           the files the theme installs (plus the mods' saved data unless
+#           --keep-data), and removes the theme's keys from keys.json
+#           (backed up first) where they still have the theme's values.
+
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+H="${HERDR_APP_HOME:-$HOME/.config/herdr-app}"
+
+FORCE=0 SWITCH=1 DRY=0 KEEP_DATA=0
+
+die()  { printf 'error: %s\n' "$*" >&2; exit 1; }
+say()  { printf '%s\n' "$*"; }
+run()  { if [ "$DRY" = 1 ]; then printf '[dry-run] %s\n' "$*"; else "$@"; fi; }
+
+usage() { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+
+need() { command -v "$1" >/dev/null 2>&1 || die "'$1' is required but not on PATH"; }
+
+themes() {
+  for d in "$REPO"/*/; do
+    d="${d%/}"
+    [ -d "$d/layouts" ] && basename "$d"
+  done
+}
+
+# Fills THEME_DIR, NAME (the layout name), MODS, LAYOUT_FILES, THEME_FILES, KEYS.
+load_theme() {
+  local t="${1:-}"
+  [ -n "$t" ] || die "which theme? one of: $(themes | tr '\n' ' ')"
+  t="${t%/}"
+  THEME_DIR="$REPO/$t"
+  [ -d "$THEME_DIR/layouts" ] || die "no theme '$t' here; one of: $(themes | tr '\n' ' ')"
+
+  local layouts=("$THEME_DIR"/layouts/*.json)
+  [ -e "${layouts[0]}" ] || die "$t/layouts has no layout .json"
+  [ "${#layouts[@]}" = 1 ] || die "$t/layouts has more than one layout .json"
+  NAME="$(basename "${layouts[0]}" .json)"
+
+  MODS=()
+  if [ -d "$THEME_DIR/mods" ]; then
+    for m in "$THEME_DIR"/mods/*/; do [ -d "$m" ] && MODS+=("$(basename "$m")"); done
+  fi
+  LAYOUT_FILES=()
+  for f in "$THEME_DIR"/layouts/*; do [ -f "$f" ] && LAYOUT_FILES+=("$(basename "$f")"); done
+  THEME_FILES=()
+  if [ -d "$THEME_DIR/themes" ]; then
+    for f in "$THEME_DIR"/themes/*; do [ -f "$f" ] && THEME_FILES+=("$(basename "$f")"); done
+  fi
+  KEYS="$THEME_DIR/keys.json"
+  [ -f "$KEYS" ] || KEYS=""
+}
+
+# Every path in the home the theme writes to.
+targets() {
+  local m f
+  for m in ${MODS[@]+"${MODS[@]}"}; do printf '%s\n' "$H/mods/$m"; done
+  for f in ${LAYOUT_FILES[@]+"${LAYOUT_FILES[@]}"}; do printf '%s\n' "$H/layouts/$f"; done
+  for f in ${THEME_FILES[@]+"${THEME_FILES[@]}"}; do printf '%s\n' "$H/themes/$f"; done
+}
+
+# Keys the theme binds that the home already binds to something else.
+key_conflicts() {
+  [ -n "$KEYS" ] && [ -f "$H/keys.json" ] || return 0
+  jq -r --slurpfile mine "$H/keys.json" '
+    to_entries[] as $s | $s.value | to_entries[]
+    | select(($mine[0][$s.key] // {})[.key] as $cur | $cur != null and $cur != .value)
+    | "  [\($s.key)] \(.key): yours is \(($mine[0][$s.key])[.key] | tojson), theme wants \(.value | tojson)"
+  ' "$KEYS"
+}
+
+backup_keys() {
+  local b="$H/keys.json.bak-$(date +%Y%m%d-%H%M%S)"
+  run cp "$H/keys.json" "$b"
+  [ "$DRY" = 1 ] || say "backed up keys.json -> $b"
+}
+
+current_layout() { herdr-app status 2>/dev/null | jq -r '.layout // empty' 2>/dev/null || true; }
+
+cmd_install() {
+  need jq; need herdr-app
+  [ -d "$H" ] || die "Herdr home not found: $H (set HERDR_APP_HOME)"
+  say "installing '$(basename "$THEME_DIR")' (layout '$NAME') into $H"
+
+  local clashes conflicts
+  clashes="$(targets | while read -r p; do [ -e "$p" ] && printf '  %s\n' "$p"; done || true)"
+  conflicts="$(key_conflicts)"
+  if [ -n "$clashes$conflicts" ] && [ "$FORCE" != 1 ]; then
+    [ -n "$clashes" ] && printf 'already exists:\n%s\n' "$clashes" >&2
+    [ -n "$conflicts" ] && printf 'key conflicts:\n%s\n' "$conflicts" >&2
+    die "nothing changed. Re-run with --force to replace these (an update), or rename the theme."
+  fi
+
+  local m f
+  run mkdir -p "$H/mods" "$H/layouts" "$H/themes"
+  for m in ${MODS[@]+"${MODS[@]}"}; do
+    # Replace the folder outright so files deleted upstream don't linger.
+    [ -e "$H/mods/$m" ] && run rm -rf "$H/mods/$m"
+    run cp -R "$THEME_DIR/mods/$m" "$H/mods/$m"
+  done
+  for f in ${LAYOUT_FILES[@]+"${LAYOUT_FILES[@]}"}; do run cp "$THEME_DIR/layouts/$f" "$H/layouts/$f"; done
+  for f in ${THEME_FILES[@]+"${THEME_FILES[@]}"}; do run cp "$THEME_DIR/themes/$f" "$H/themes/$f"; done
+  say "copied: $(targets | sed "s|^$H/||" | tr '\n' ' ')"
+
+  if [ -n "$KEYS" ]; then
+    if [ -f "$H/keys.json" ]; then
+      backup_keys
+      if [ "$DRY" = 1 ]; then
+        say "[dry-run] merge $KEYS into $H/keys.json"
+      else
+        local tmp; tmp="$(mktemp)"
+        jq -s '.[0] * .[1]' "$H/keys.json" "$KEYS" > "$tmp" && mv "$tmp" "$H/keys.json"
+      fi
+    else
+      run cp "$KEYS" "$H/keys.json"
+    fi
+    say "merged keys: $(jq -r 'keys | join(", ")' "$KEYS")"
+  fi
+
+  [ "$DRY" = 1 ] && { say "dry run: nothing written"; return; }
+
+  for m in ${MODS[@]+"${MODS[@]}"}; do herdr-app check "$H/mods/$m"; done
+
+  if [ "$SWITCH" = 1 ]; then
+    if herdr-app do layout.switch --name "$NAME" >/dev/null; then
+      say "switched to layout '$NAME' (ctrl-shift-l cycles back)"
+      local errs; errs="$(herdr-app status 2>/dev/null | jq -c '.errors // []' 2>/dev/null || echo '[]')"
+      [ "$errs" = "[]" ] || say "warning: herdr-app status reports errors: $errs"
+    else
+      say "warning: could not switch layout (is Herdr running?). Run: herdr-app do layout.switch --name $NAME"
+    fi
+  fi
+  say "done."
+}
+
+cmd_uninstall() {
+  need jq
+  say "uninstalling '$(basename "$THEME_DIR")' (layout '$NAME') from $H"
+
+  if command -v herdr-app >/dev/null 2>&1 && [ "$(current_layout)" = "$NAME" ]; then
+    if [ "$DRY" = 1 ]; then
+      say "[dry-run] herdr-app do layout.switch --name main"
+    elif herdr-app do layout.switch --name main >/dev/null; then
+      say "switched to layout 'main'"
+    else
+      say "warning: could not switch to 'main'"
+    fi
+  fi
+
+  local p m removed=0
+  while read -r p; do
+    [ -e "$p" ] || continue
+    run rm -rf "$p"; [ "$DRY" = 1 ] || say "removed ${p#$H/}"; removed=1
+  done < <(targets)
+  if [ "$KEEP_DATA" != 1 ]; then
+    for m in ${MODS[@]+"${MODS[@]}"}; do
+      [ -e "$H/data/$m" ] && { run rm -rf "$H/data/$m"; [ "$DRY" = 1 ] || say "removed data/$m"; removed=1; }
+    done
+  fi
+
+  if [ -n "$KEYS" ] && [ -f "$H/keys.json" ]; then
+    # Only drop keys that still carry the theme's value; keep anything you changed.
+    local filter='
+      reduce ($theme[0] | to_entries[]) as $s (.;
+        if .[$s.key] then
+          .[$s.key] |= with_entries(select(.value != $s.value[.key]))
+          | if .[$s.key] == {} then del(.[$s.key]) else . end
+        else . end)'
+    if [ "$(jq --slurpfile theme "$KEYS" "$filter" "$H/keys.json")" != "$(jq . "$H/keys.json")" ]; then
+      backup_keys
+      if [ "$DRY" = 1 ]; then
+        say "[dry-run] remove the theme's keys from $H/keys.json"
+      else
+        local tmp; tmp="$(mktemp)"
+        jq --slurpfile theme "$KEYS" "$filter" "$H/keys.json" > "$tmp" && mv "$tmp" "$H/keys.json"
+      fi
+      [ "$DRY" = 1 ] || say "removed the theme's keys from keys.json"; removed=1
+    fi
+  fi
+
+  [ "$removed" = 1 ] || say "nothing to remove: '$NAME' isn't installed."
+  [ "$DRY" = 1 ] && say "dry run: nothing written"
+  say "done."
+}
+
+[ $# -ge 1 ] || usage 1
+CMD="$1"; shift
+ARGS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --force) FORCE=1 ;;
+    --no-switch) SWITCH=0 ;;
+    --dry-run) DRY=1 ;;
+    --keep-data) KEEP_DATA=1 ;;
+    -h|--help) usage 0 ;;
+    -*) die "unknown option: $1" ;;
+    *) ARGS+=("$1") ;;
+  esac
+  shift
+done
+
+case "$CMD" in
+  list) themes ;;
+  install) load_theme "${ARGS[0]:-}"; cmd_install ;;
+  uninstall) load_theme "${ARGS[0]:-}"; cmd_uninstall ;;
+  -h|--help|help) usage 0 ;;
+  *) die "unknown command: $CMD (list, install, uninstall)" ;;
+esac

@@ -29,29 +29,18 @@ folder. It runs these programs:
 It stores the hero's position in `$H/data/herdr-quest/`. That is per-user
 state, so never copy it into the repo.
 
-## Install
+## Install / uninstall
 
-Run from this directory, after the clash check in `../AGENTS.md`:
-
-```sh
-cp -R mods/herdr-quest $H/mods/
-cp layouts/herdr-quest.{json,svg} $H/layouts/
-cp themes/herdr-quest.json $H/themes/
-cp $H/keys.json $H/keys.json.bak
-jq -s '.[0] * .[1]' $H/keys.json.bak keys.json > $H/keys.json
-herdr-app check $H/mods/herdr-quest
-herdr-app do layout.switch --name herdr-quest
-```
-
-## Uninstall
+First tell the person what the mod runs (see above). Then, from the repo root:
 
 ```sh
-rm -r $H/mods/herdr-quest $H/data/herdr-quest
-rm $H/layouts/herdr-quest.{json,svg} $H/themes/herdr-quest.json
+./herdr-theme install rpg --dry-run   # show the plan; stops on clashes or key conflicts
+./herdr-theme install rpg             # copy, merge keys (backed up), check, switch
+./herdr-theme uninstall rpg           # switch to main if shown, remove files, data and keys
 ```
 
-Then remove the `layout:herdr-quest` section from `$H/keys.json`. Ask the
-person before you edit their keys.
+If install stops on a clash or key conflict, ask the person before you re-run
+with `--force`. Never use `--force` on your own.
 
 ## Editing this theme
 

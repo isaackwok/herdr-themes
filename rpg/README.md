@@ -19,28 +19,14 @@ For requirements and how themes in this repo work in general, see the
 
 ## Install
 
-Run these from this directory (`rpg/`):
+From the repo root:
 
 ```sh
-H=~/.config/herdr-app
-
-# 0. Make sure nothing with these names exists yet.
-#    These copies overwrite silently.
-ls $H/mods/herdr-quest $H/layouts/herdr-quest.* $H/themes/herdr-quest.json 2>/dev/null
-
-# 1. Copy the files.
-cp -R mods/herdr-quest              $H/mods/
-cp    layouts/herdr-quest.{json,svg} $H/layouts/
-cp    themes/herdr-quest.json        $H/themes/
-
-# 2. Merge the keybindings. This only adds a "layout:herdr-quest" section.
-cp $H/keys.json $H/keys.json.bak
-jq -s '.[0] * .[1]' $H/keys.json.bak keys.json > $H/keys.json
-
-# 3. Check the mod, then switch to the layout.
-herdr-app check $H/mods/herdr-quest
-herdr-app do layout.switch --name herdr-quest
+./herdr-theme install rpg     # add --dry-run to preview, --force to update an existing install
 ```
+
+The [root README](../README.md#installing-and-uninstalling) explains what the
+script does and the manual steps.
 
 ## Keys (while this layout is shown)
 
@@ -68,12 +54,8 @@ The hero's position is saved in `~/.config/herdr-app/data/herdr-quest/`.
 ## Uninstall
 
 ```sh
-H=~/.config/herdr-app
-rm -r $H/mods/herdr-quest $H/data/herdr-quest
-rm    $H/layouts/herdr-quest.{json,svg} $H/themes/herdr-quest.json
+./herdr-theme uninstall rpg   # add --keep-data to keep the hero's saved position
 ```
-
-Then delete the `"layout:herdr-quest"` section from `$H/keys.json`.
 
 ## Developing
 
