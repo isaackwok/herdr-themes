@@ -1,0 +1,8 @@
+{
+  "layout:herdr-quest": {
+    "cmd-e": "herdr-quest.explore",
+    "escape": "herdr-quest.escape",
+    "cmd-p": "herdr-quest.picker",
+    "cmd-shift-p": "herdr-quest.palette"
+  }
+}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200" shape-rendering="crispEdges">
+  <rect width="320" height="200" fill="#3fa34d"/>
+  <!-- tree border -->
+  <g fill="#1f7a3a">
+    <rect x="0" y="0" width="320" height="12"/>
+    <rect x="0" y="160" width="320" height="12"/>
+    <rect x="0" y="0" width="12" height="172"/>
+    <rect x="308" y="0" width="12" height="172"/>
+  </g>
+  <g fill="#7a4a24">
+    <rect x="5" y="8" width="2" height="4"/><rect x="25" y="8" width="2" height="4"/><rect x="45" y="8" width="2" height="4"/><rect x="65" y="8" width="2" height="4"/>
+  </g>
+  <!-- houses -->
+  <g>
+    <rect x="26" y="18" width="28" height="10" fill="#c8423a"/><rect x="28" y="28" width="24" height="14" fill="#f0e0b8"/><rect x="32" y="32" width="6" height="10" fill="#6b3d1c"/><rect x="42" y="31" width="7" height="5" fill="#ffe58a"/>
+    <rect x="100" y="18" width="28" height="10" fill="#c8423a"/><rect x="102" y="28" width="24" height="14" fill="#f0e0b8"/><rect x="106" y="32" width="6" height="10" fill="#6b3d1c"/><rect x="116" y="31" width="7" height="5" fill="#ffe58a"/>
+    <rect x="174" y="18" width="28" height="10" fill="#c8423a"/><rect x="176" y="28" width="24" height="14" fill="#f0e0b8"/><rect x="180" y="32" width="6" height="10" fill="#6b3d1c"/><rect x="190" y="31" width="7" height="5" fill="#ffe58a"/>
+  </g>
+  <!-- roads -->
+  <rect x="12" y="44" width="296" height="10" fill="#d9b77a"/>
+  <rect x="158" y="54" width="10" height="106" fill="#d9b77a"/>
+  <!-- heroes (agents) with status bubbles -->
+  <rect x="30" y="58" width="8" height="12" fill="#e8923a"/><rect x="31" y="54" width="6" height="4" fill="#f4f4ff"/><rect x="32" y="50" width="4" height="3" fill="#5ee08a"/>
+  <rect x="104" y="58" width="8" height="12" fill="#e8923a"/><rect x="105" y="54" width="6" height="4" fill="#f4f4ff"/><rect x="106" y="50" width="4" height="3" fill="#ff5c6c"/>
+  <!-- player -->
+  <rect x="140" y="96" width="8" height="10" fill="#2f5fd0"/><rect x="141" y="92" width="6" height="4" fill="#6b3d1c"/>
+  <!-- plaza: lectern, board, sign, chest, well, fire -->
+  <rect x="88" y="132" width="10" height="7" fill="#f4f4ff"/><rect x="92" y="139" width="2" height="6" fill="#b07a3a"/>
+  <rect x="112" y="128" width="12" height="11" fill="#b07a3a"/><rect x="114" y="130" width="4" height="3" fill="#f4f4ff"/><rect x="119" y="134" width="4" height="3" fill="#f4f4ff"/>
+  <rect x="136" y="146" width="10" height="5" fill="#b07a3a"/><rect x="140" y="151" width="2" height="5" fill="#7a4a24"/>
+  <rect x="182" y="132" width="12" height="9" fill="#b07a3a"/><rect x="186" y="135" width="4" height="3" fill="#ffd34e"/>
+  <rect x="206" y="128" width="12" height="4" fill="#c8423a"/><rect x="206" y="134" width="12" height="7" fill="#9aa0b8"/><rect x="208" y="135" width="8" height="3" fill="#2f6fd6"/>
+  <rect x="232" y="138" width="10" height="3" fill="#7a4a24"/><rect x="234" y="130" width="6" height="8" fill="#ff7a3a"/><rect x="236" y="127" width="2" height="4" fill="#ffd34e"/>
+  <!-- pond -->
+  <rect x="262" y="120" width="46" height="40" fill="#2f6fd6"/>
+  <rect x="268" y="128" width="8" height="2" fill="#8cc0ff"/><rect x="286" y="142" width="8" height="2" fill="#8cc0ff"/>
+  <!-- dialogue box -->
+  <rect x="4" y="174" width="312" height="22" rx="2" fill="#18218a" stroke="#dfe4ff"/>
+  <rect x="10" y="179" width="4" height="4" fill="#ffd34e"/><rect x="18" y="179" width="110" height="4" fill="#f2f4ff"/>
+  <rect x="18" y="187" width="180" height="3" fill="#bcc3f0"/><rect x="250" y="179" width="60" height="4" fill="#ffd34e"/>
+</svg>

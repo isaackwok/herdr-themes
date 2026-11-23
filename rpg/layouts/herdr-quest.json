@@ -1,0 +1,119 @@
+{
+  "id": "root",
+  "type": "column",
+  "titlebar": "none",
+  "traffic_lights": [
+    14,
+    18
+  ],
+  "theme": "herdr-quest",
+  "ui_font": "PxPlus IBM VGA 8x16",
+  "terminal_padding": [
+    10,
+    8
+  ],
+  "toast": "herdr-quest",
+  "preview": "layouts/herdr-quest.svg",
+  "background": {
+    "gradient": [
+      "#2a1c10",
+      "#140d07"
+    ],
+    "angle": 180
+  },
+  "children": [
+    {
+      "id": "stage",
+      "type": "stack",
+      "active": "field",
+      "children": [
+        {
+          "id": "field",
+          "type": "block",
+          "window_drag": true,
+          "background": "#26392a",
+          "content": {
+            "mod": "herdr-quest",
+            "props": {
+              "role": "field"
+            }
+          }
+        },
+        {
+          "id": "main",
+          "type": "column",
+          "children": [
+            {
+              "id": "quests",
+              "type": "block",
+              "size": {
+                "px": 48
+              },
+              "window_drag": true,
+              "background": {
+                "gradient": [
+                  "#f3e8cf",
+                  "#ddc89c"
+                ],
+                "angle": 180
+              },
+              "border": {
+                "width": 3,
+                "color": "#5a3a1e"
+              },
+              "content": {
+                "mod": "herdr-quest",
+                "props": {
+                  "role": "quests"
+                }
+              }
+            },
+            {
+              "id": "battle-body",
+              "type": "row",
+              "padding": [
+                8,
+                8
+              ],
+              "children": [
+                {
+                  "id": "tabview",
+                  "type": "block",
+                  "content": {
+                    "tab": "active",
+                    "pane": {
+                      "gap": 8,
+                      "radius": 8,
+                      "background": "background",
+                      "lone": true,
+                      "border": {
+                        "width": 2,
+                        "color": "#7a5530"
+                      },
+                      "focus": {
+                        "width": 2,
+                        "color": "#d9a441"
+                      },
+                      "header": {
+                        "content": {
+                          "mod": "herdr-quest",
+                          "props": {
+                            "role": "pane"
+                          }
+                        },
+                        "height": 30,
+                        "position": "top",
+                        "reveal": "always"
+                      }
+                    }
+                  }
+                }
+              ],
+              "background": "#1f150c"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
